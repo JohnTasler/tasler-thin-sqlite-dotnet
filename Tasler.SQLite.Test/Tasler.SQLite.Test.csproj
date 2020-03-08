@@ -129,6 +129,7 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <Content Include="Statements\DropNamesTable.sqlite" />
+    <Content Include="Statements\InsertBoundValuesIntoTable.sqlite" />
     <None Include="Tasler.SQLite.Test_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>

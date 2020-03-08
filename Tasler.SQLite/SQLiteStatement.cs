@@ -39,6 +39,33 @@ namespace Tasler.SQLite
 			}
 		}
 
+		public int GetParameterNameIndex(string parameterName)
+		{
+			if (parameterName == null)
+				throw new ArgumentNullException("parameterName");
+
+			var parameterIndex = Native.sqlite3_bind_parameter_index(this, parameterName);
+			if (parameterIndex == 0)
+				throw new ArgumentException("The SQLiteStatement has no matching parameter name: " + parameterName, "parameterName");
+
+			return parameterIndex;
+		}
+
+		public void BindTextParameter(string parameterName, string value)
+		{
+			this.BindTextParameter(GetParameterNameIndex(parameterName), value);
+		}
+
+		public void BindTextParameter(int parameterIndex, string value)
+		{
+			value = value ?? string.Empty;
+			var pointer = Marshal.StringToCoTaskMemUni(value);
+			var byteCount = value.Length * sizeof(char);
+			var result = Native.sqlite3_bind_text16(this, parameterIndex, pointer, byteCount, new IntPtr(-1));
+			Marshal.FreeCoTaskMem(pointer);
+			ThrowOnError(result);
+		}
+
 		public SQLiteConnection Connection { get; internal set; }
 
 		public void Execute()
@@ -48,7 +75,7 @@ namespace Tasler.SQLite
 
 		public IEnumerable<SQLiteRow> GetRows()
 		{
-			SQLiteResultCode result = Native.sqlite3_reset(this);
+			SQLiteResultCode result = SQLiteResultCode.Ok; //Native.sqlite3_reset(this);
 			lock (_lockObject)
 				_columnDefinitions = null;
 
@@ -72,6 +99,12 @@ namespace Tasler.SQLite
 					ThrowOnError(result);
 				}
 			}
+		}
+
+		public void Reset()
+		{
+			var result = Native.sqlite3_reset(this);
+			ThrowOnError(result);
 		}
 
 		protected override bool ReleaseHandle()

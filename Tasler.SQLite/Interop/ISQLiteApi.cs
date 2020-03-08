@@ -35,7 +35,7 @@ namespace Tasler.SQLite.Interop
 				int parameterIndex,
 				IntPtr value,
 				int byteCount,
-				SQLiteApi.MemoryReleaseCallback releaseCallback);
+				IntPtr releaseCallback);
 
 		SQLiteResultCode sqlite3_bind_zeroblob(
 				SQLiteStatement statement,

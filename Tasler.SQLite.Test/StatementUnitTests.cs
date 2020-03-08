@@ -92,5 +92,60 @@ namespace Tasler.SQLite.Test
 				}
 			}
 		}
+
+		[TestMethod]
+		public void InsertBoundValuesIntoTable()
+		{
+			using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
+			{
+				using (var statement = connection.PrepareStatementText("DropNamesTable.sqlite"))
+					statement.Execute();
+
+				using (var statement = connection.PrepareStatementText("CreateNamesTable.sqlite"))
+					statement.Execute();
+
+				using (var statement = connection.PrepareStatementText("InsertBoundValuesIntoTable.sqlite"))
+				{
+					var insertRecords = new[]
+					{
+						new { FirstName = "Keith"  , LastName = "Richards" },
+						new { FirstName = "Michael", LastName = "Jackson"  },
+						new { FirstName = "Elvis"  , LastName = "Presley"  },
+						new { FirstName = "Jimmy"  , LastName = "Page"     },
+					};
+
+					foreach (var insertRecord in insertRecords)
+					{
+						statement.Reset();
+						statement.BindTextParameter("@firstName", insertRecord.FirstName);
+						statement.BindTextParameter("@lastName" , insertRecord.LastName);
+						statement.Execute();
+					}
+				}
+			}
+
+			//using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
+			//{
+			//	using (var statement = connection.PrepareStatementText("SelectFromNamesTable.sqlite"))
+			//	{
+			//		var firstRow = statement.GetRows().FirstOrDefault();
+			//		Assert.IsNotNull(firstRow, "No rows were returned from the SELECT statement. Expected 1.");
+			//		Assert.AreEqual(firstRow.Columns.Count, 3);
+			//		Assert.AreEqual(firstRow.Columns[0].GetStringValue(), "John");
+			//		Assert.AreEqual(firstRow.Columns[1].GetStringValue(), "Tasler");
+			//		Assert.AreNotEqual(firstRow.Columns[2].GetDoubleValue(), 0);
+			//		for (var index = 0; index < firstRow.Columns.Count; ++index)
+			//		{
+			//			var column = firstRow.Columns[index];
+			//			Assert.AreEqual(column.Index, index);
+			//			Assert.IsNotNull(column.Definition);
+			//		}
+
+			//		Assert.AreEqual(firstRow.Columns[0].Definition.DataTypeName, "TEXT");
+			//		Assert.AreEqual(firstRow.Columns[1].Definition.DataTypeName, "TEXT");
+			//		Assert.AreEqual(firstRow.Columns[2].Definition.DataTypeName, "DATETIME");
+			//	}
+			//}
+		}
 	}
 }

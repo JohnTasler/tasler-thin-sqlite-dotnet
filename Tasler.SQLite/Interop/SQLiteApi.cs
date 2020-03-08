@@ -29,6 +29,5 @@ namespace Tasler.SQLite.Interop
 		internal static ISQLiteApi Native { get { return ms_native; } }
 
 		internal delegate void MemoryReleaseCallback ( IntPtr pointer );
-
 	}
 }

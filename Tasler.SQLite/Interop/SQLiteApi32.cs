@@ -54,7 +54,7 @@ namespace Tasler.SQLite.Interop
 					int parameterIndex,
 					IntPtr value,
 					int byteCount,
-					[MarshalAs(UnmanagedType.FunctionPtr)] SQLiteApi.MemoryReleaseCallback releaseCallback);
+					IntPtr releaseCallback);
 
 			[DllImport(ApiLib, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode, ExactSpelling = true)]
 			internal static extern
@@ -255,7 +255,7 @@ namespace Tasler.SQLite.Interop
 			return NativeMethods.sqlite3_bind_null(statement, parameterIndex);
 		}
 
-		public SQLiteResultCode sqlite3_bind_text16(SQLiteStatement statement, int parameterIndex, IntPtr value, int byteCount, SQLiteApi.MemoryReleaseCallback releaseCallback)
+		public SQLiteResultCode sqlite3_bind_text16(SQLiteStatement statement, int parameterIndex, IntPtr value, int byteCount, IntPtr releaseCallback)
 		{
 			return NativeMethods.sqlite3_bind_text16(statement, parameterIndex, value, byteCount, releaseCallback);
 		}
