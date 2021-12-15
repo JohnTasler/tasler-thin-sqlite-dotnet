@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS t1(
-    dt DATETIME
+	dt DATETIME
 );
 
 -- Values stored as TEXT, INTEGER, INTEGER, REAL, TEXT.

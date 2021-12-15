@@ -1,6 +1,5 @@
-﻿using System.IO;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
-using Windows.Storage;
+﻿using Microsoft.VisualStudio.TestPlatform.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tasler.SQLite.Test
 {
@@ -19,18 +18,13 @@ namespace Tasler.SQLite.Test
 		[TestMethod]
 		public void CreateAndCloseFileDb()
 		{
-			var filePath = GetLocalFileFullPath(Common.TestDatabaseFullPathName);
-			Logger.LogMessage("filePath={0}", filePath);
+			var filePath = Common.GetLocalFileFullPath(Common.TestDatabaseFullPathName);
+			ConsoleOutput.Instance.WriteLine($"filePath={filePath}", OutputLevel.Information);
 
 			using (var connection = SQLiteConnection.Open(filePath))
 			{
 				Assert.IsNotNull(connection);
 			}
-		}
-
-		internal static string GetLocalFileFullPath(string fileName)
-		{
-			return Path.Combine(ApplicationData.Current.LocalFolder.Path, fileName);
 		}
 	}
 }

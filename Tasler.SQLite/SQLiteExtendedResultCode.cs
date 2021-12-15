@@ -1,5 +1,6 @@
 ﻿using System;
-	namespace Tasler.SQLite
+
+namespace Tasler.SQLite
 {
 	[Flags]
 	public enum SQLiteExtendedResultCode

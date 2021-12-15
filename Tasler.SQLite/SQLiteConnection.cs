@@ -7,13 +7,13 @@ namespace Tasler.SQLite
 	public class SQLiteConnection : SQLiteSafeHandle
 	{
 		public static SQLiteConnection Open(
-				string filename,
-				SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite)
+			string filename,
+			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite)
 		{
 			SQLiteConnection connection;
-			var result = SQLiteApi.Native.sqlite3_open_v2(filename, out connection, flags, null);
+			var result = SQLiteApi.sqlite3_open_v2(filename, out connection, flags, null);
 			if (!connection.IsInvalid)
-				SQLiteApi.Native.sqlite3_extended_result_codes(connection, true);
+				SQLiteApi.sqlite3_extended_result_codes(connection, true);
 			connection.ThrowOnError(result);
 			return connection;
 		}
@@ -21,16 +21,16 @@ namespace Tasler.SQLite
 		public SQLiteStatement PrepareStatement(string sqlQuery)
 		{
 			SQLiteStatement statement;
-			ThrowOnError(SQLiteApi.Native.sqlite3_prepare16_v2(
+			ThrowOnError(SQLiteApi.sqlite3_prepare16_v2(
 					this, sqlQuery, (sqlQuery.Length + 1) * sizeof(char), out statement, IntPtr.Zero));
 			statement.Connection = this;
 			return statement;
 		}
 
 		public SQLiteColumnDefinition GetTableColumnMetadata(
-				string dbName,
-				string tableName,
-				string columnName)
+			string dbName,
+			string tableName,
+			string columnName)
 		{
 			var dataTypeNamePtr = IntPtr.Zero;
 			var collationSequenceNamePtr = IntPtr.Zero;
@@ -39,7 +39,7 @@ namespace Tasler.SQLite
 			var isAutoIncrement = false;
 
 			ThrowOnError(
-					SQLiteApi.Native.sqlite3_table_column_metadata(
+					SQLiteApi.sqlite3_table_column_metadata(
 							this, dbName, tableName, columnName,
 							out dataTypeNamePtr, out collationSequenceNamePtr,
 							out isNotNullable, out isPrimaryKey, out isAutoIncrement)
@@ -60,44 +60,20 @@ namespace Tasler.SQLite
 
 		public string GetErrorMessage(SQLiteResultCode resultCode)
 		{
-			return Marshal.PtrToStringAnsi(SQLiteApi.Native.sqlite3_errstr(resultCode));
+			return Marshal.PtrToStringAnsi(SQLiteApi.sqlite3_errstr(resultCode));
 		}
 
-		public SQLiteResultCode LastErrorCode
-		{
-			get
-			{
-				return SQLiteApi.Native.sqlite3_errcode(this);
-			}
-		}
+		public SQLiteResultCode LastErrorCode => SQLiteApi.sqlite3_errcode(this);
 
-		public SQLiteExtendedResultCode LastExtendedErrorCode
-		{
-			get
-			{
-				return SQLiteApi.Native.sqlite3_extended_errcode(this);
-			}
-		}
+		public SQLiteExtendedResultCode LastExtendedErrorCode => SQLiteApi.sqlite3_extended_errcode(this);
 
-		public string LastErrorMessage
-		{
-			get
-			{
-				return Marshal.PtrToStringUni(SQLiteApi.Native.sqlite3_errmsg16(this));
-			}
-		}
+		public string LastErrorMessage => Marshal.PtrToStringUni(SQLiteApi.sqlite3_errmsg16(this));
 
-		public string LastExtendedErrorMessage
-		{
-			get
-			{
-				return Marshal.PtrToStringAnsi(SQLiteApi.Native.sqlite3_extended_errstr(this.LastExtendedErrorCode));
-			}
-		}
+		public string LastExtendedErrorMessage => Marshal.PtrToStringAnsi(SQLiteApi.sqlite3_extended_errstr(this.LastExtendedErrorCode));
 
 		protected override bool ReleaseHandle()
 		{
-			var errorCode = SQLiteApi.Native.sqlite3_close_v2(this.handle);
+			var errorCode = SQLiteApi.sqlite3_close_v2(this.handle);
 			this.handle = IntPtr.Zero;
 			return errorCode == SQLiteResultCode.Ok;
 		}
@@ -107,6 +83,5 @@ namespace Tasler.SQLite
 			if (errorCode != SQLiteResultCode.Ok)
 				throw new SQLiteConnectionException(this);
 		}
-
 	}
 }

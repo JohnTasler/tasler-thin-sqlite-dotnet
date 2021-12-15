@@ -1,6 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Tasler.SQLite.Interop;
+
 namespace Tasler.SQLite
 {
 	public class SQLiteColumn
@@ -55,8 +56,8 @@ namespace Tasler.SQLite
 
 		public byte[] GetBlobValue()
 		{
-			var byteCount = SQLiteStatement.Native.sqlite3_column_bytes(Row.Statement, this.Index);
-			var blob = SQLiteStatement.Native.sqlite3_column_blob(Row.Statement, this.Index);
+			var byteCount = SQLiteApi.sqlite3_column_bytes(Row.Statement, this.Index);
+			var blob = SQLiteApi.sqlite3_column_blob(Row.Statement, this.Index);
 			var value = new byte[byteCount];
 			Marshal.Copy(blob, value, 0, byteCount);
 			return value;
@@ -64,22 +65,22 @@ namespace Tasler.SQLite
 
 		public double GetDoubleValue()
 		{
-			return SQLiteStatement.Native.sqlite3_column_double(Row.Statement, this.Index);
+			return SQLiteApi.sqlite3_column_double(Row.Statement, this.Index);
 		}
 
 		public int GetInt32Value()
 		{
-			return SQLiteStatement.Native.sqlite3_column_int(Row.Statement, this.Index);
+			return SQLiteApi.sqlite3_column_int(Row.Statement, this.Index);
 		}
 
 		public long GetInt64Value()
 		{
-			return SQLiteStatement.Native.sqlite3_column_int64(Row.Statement, this.Index);
+			return SQLiteApi.sqlite3_column_int64(Row.Statement, this.Index);
 		}
 
 		public string GetStringValue()
 		{
-			return Marshal.PtrToStringUni(SQLiteStatement.Native.sqlite3_column_text16(Row.Statement, this.Index));
+			return Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_text16(Row.Statement, this.Index));
 		}
 
 		public bool GetBooleanValue()

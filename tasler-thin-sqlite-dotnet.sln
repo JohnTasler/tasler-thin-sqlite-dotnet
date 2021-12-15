@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tasler.SQLite", "Tasler.SQLite\Tasler.SQLite.csproj", "{C4FDE880-5592-4D97-B50E-F80832CFC14B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EC6A17B4-63C4-43F6-A15A-2821C5CC4C3A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		DateScratchPad.sql = DateScratchPad.sql
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasler.SQLite.Test", "Tasler.SQLite.Test\Tasler.SQLite.Test.csproj", "{1EDF1753-DC13-46C2-9F83-390F147DD272}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4FDE880-5592-4D97-B50E-F80832CFC14B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4FDE880-5592-4D97-B50E-F80832CFC14B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4FDE880-5592-4D97-B50E-F80832CFC14B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4FDE880-5592-4D97-B50E-F80832CFC14B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EDF1753-DC13-46C2-9F83-390F147DD272}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EDF1753-DC13-46C2-9F83-390F147DD272}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EDF1753-DC13-46C2-9F83-390F147DD272}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EDF1753-DC13-46C2-9F83-390F147DD272}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {721DE9B1-7BFC-4AFE-8103-2411207977B9}
+	EndGlobalSection
+EndGlobal

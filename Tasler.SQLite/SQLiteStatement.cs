@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
@@ -18,13 +19,13 @@ namespace Tasler.SQLite
 				{
 					if (_columnDefinitions == null)
 					{
-						var columnCount = Native.sqlite3_column_count(this);
+						var columnCount = SQLiteApi.sqlite3_column_count(this);
 						var columnDefinitions = new SQLiteColumnDefinition[columnCount];
 						for (var columnIndex = 0; columnIndex < columnCount; ++columnIndex)
 						{
-							var databaseName = Marshal.PtrToStringUni(Native.sqlite3_column_database_name16(this, columnIndex));
-							var tableName = Marshal.PtrToStringUni(Native.sqlite3_column_table_name16(this, columnIndex));
-							var originName = Marshal.PtrToStringUni(Native.sqlite3_column_origin_name16(this, columnIndex));
+							var databaseName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_database_name16(this, columnIndex));
+							var tableName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_table_name16(this, columnIndex));
+							var originName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_origin_name16(this, columnIndex));
 
 							if (databaseName != null && tableName != null && originName != null)
 								columnDefinitions[columnIndex] =
@@ -44,7 +45,7 @@ namespace Tasler.SQLite
 			if (parameterName == null)
 				throw new ArgumentNullException("parameterName");
 
-			var parameterIndex = Native.sqlite3_bind_parameter_index(this, parameterName);
+			var parameterIndex = SQLiteApi.sqlite3_bind_parameter_index(this, parameterName);
 			if (parameterIndex == 0)
 				throw new ArgumentException("The SQLiteStatement has no matching parameter name: " + parameterName, "parameterName");
 
@@ -61,7 +62,7 @@ namespace Tasler.SQLite
 			value = value ?? string.Empty;
 			var pointer = Marshal.StringToCoTaskMemUni(value);
 			var byteCount = value.Length * sizeof(char);
-			var result = Native.sqlite3_bind_text16(this, parameterIndex, pointer, byteCount, new IntPtr(-1));
+			var result = SQLiteApi.sqlite3_bind_text16(this, parameterIndex, pointer, byteCount, new IntPtr(-1));
 			Marshal.FreeCoTaskMem(pointer);
 			ThrowOnError(result);
 		}
@@ -75,14 +76,14 @@ namespace Tasler.SQLite
 
 		public IEnumerable<SQLiteRow> GetRows()
 		{
-			SQLiteResultCode result = SQLiteResultCode.Ok; //Native.sqlite3_reset(this);
+			SQLiteResultCode result = SQLiteResultCode.Ok; //SQLiteApi.sqlite3_reset(this);
 			lock (_lockObject)
 				_columnDefinitions = null;
 
 			while (result != SQLiteResultCode.Done)
 			{
 				lock (_lockObject)
-					result = Native.sqlite3_step(this);
+					result = SQLiteApi.sqlite3_step(this);
 
 				if (result == SQLiteResultCode.Row)
 				{
@@ -103,13 +104,13 @@ namespace Tasler.SQLite
 
 		public void Reset()
 		{
-			var result = Native.sqlite3_reset(this);
+			var result = SQLiteApi.sqlite3_reset(this);
 			ThrowOnError(result);
 		}
 
 		protected override bool ReleaseHandle()
 		{
-			var errorCode = Native.sqlite3_finalize(this.handle);
+			var errorCode = SQLiteApi.sqlite3_finalize(this.handle);
 			this.handle = IntPtr.Zero;
 			return errorCode == SQLiteResultCode.Ok;
 		}
