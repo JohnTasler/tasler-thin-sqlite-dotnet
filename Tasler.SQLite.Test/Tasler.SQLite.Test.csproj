@@ -21,19 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Statements\CreateNamesTable.sqlite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Statements\DropNamesTable.sqlite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Statements\InsertBoundValuesIntoTable.sqlite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Statements\InsertStaticValuesIntoTable.sqlite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Statements\SelectFromNamesTable.sqlite">
+    <None Update="Statements\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
