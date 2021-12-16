@@ -8,6 +8,7 @@
     <Company>Tasler Computing</Company>
     <Authors>John Tasler</Authors>
     <Platforms>AnyCPU</Platforms>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

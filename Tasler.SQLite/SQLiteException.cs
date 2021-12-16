@@ -4,8 +4,8 @@ namespace Tasler.SQLite
 {
 	public abstract class SQLiteException : Exception
 	{
-		internal SQLiteException ( string extendedErrorMessage, string errorMessage, SQLiteResultCode errorCode, SQLiteExtendedResultCode extendedErrorCode )
-			: base ( extendedErrorMessage )
+		internal SQLiteException(string extendedErrorMessage, string errorMessage, SQLiteResultCode errorCode, SQLiteExtendedResultCode extendedErrorCode)
+			: base(extendedErrorMessage)
 		{
 			this.ErrorMessage = extendedErrorMessage;
 			this.ErrorCode = errorCode;

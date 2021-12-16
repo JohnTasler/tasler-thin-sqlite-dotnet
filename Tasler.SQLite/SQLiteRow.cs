@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Tasler.SQLite
 {
-	public class SQLiteRow
+	public sealed class SQLiteRow
 	{
 		internal SQLiteRow(SQLiteStatement statement)
 		{

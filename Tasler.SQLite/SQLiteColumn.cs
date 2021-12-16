@@ -4,7 +4,7 @@ using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
-	public class SQLiteColumn
+	public sealed class SQLiteColumn
 	{
 		internal SQLiteColumn(SQLiteRow row, SQLiteColumnDefinition definition, int index)
 		{
@@ -36,7 +36,7 @@ namespace Tasler.SQLite
 
 			if (dataTypeName.Contains("BLOB") || dataTypeName == string.Empty)
 			{
-				return this.GetBlobValue();
+				return this.GetBlobSpanValue();
 			}
 
 			if (dataTypeName.Contains("REAL") || dataTypeName.Contains("FLOA") || dataTypeName.Contains("DOUB"))
@@ -54,13 +54,14 @@ namespace Tasler.SQLite
 			return longValue <= int.MaxValue ? (int)longValue : longValue;
 		}
 
-		public byte[] GetBlobValue()
+		public SQLiteBlobSpan GetBlobSpanValue()
 		{
 			var byteCount = SQLiteApi.sqlite3_column_bytes(Row.Statement, this.Index);
-			var blob = SQLiteApi.sqlite3_column_blob(Row.Statement, this.Index);
-			var value = new byte[byteCount];
-			Marshal.Copy(blob, value, 0, byteCount);
-			return value;
+			unsafe
+			{
+				var blobPointer = SQLiteApi.sqlite3_column_blob(Row.Statement, this.Index);
+				return new SQLiteBlobSpan(blobPointer, byteCount);
+			}
 		}
 
 		public double GetDoubleValue()

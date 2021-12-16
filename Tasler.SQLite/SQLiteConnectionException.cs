@@ -1,7 +1,7 @@
 ﻿
 namespace Tasler.SQLite
 {
-	public class SQLiteConnectionException : SQLiteException
+	public sealed class SQLiteConnectionException : SQLiteException
 	{
 		internal SQLiteConnectionException(SQLiteConnection connection)
 			: base(

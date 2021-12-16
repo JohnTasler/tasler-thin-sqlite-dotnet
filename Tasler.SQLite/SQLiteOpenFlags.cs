@@ -13,8 +13,8 @@ namespace Tasler.SQLite
 		NoMutex          = 0x00008000,
 		FullMutex        = 0x00010000,
 		SharedCache      = 0x00020000,
-		Privatecache     = 0x00040000,
-		
+		PrivateCache     = 0x00040000,
+
 		VfsDeleteOnClose = 0x00000008,
 		VfsExclusive     = 0x00000010,
 		VfsAutoProxy     = 0x00000020,

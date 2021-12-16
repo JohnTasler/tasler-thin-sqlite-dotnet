@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
-	public class SQLiteStatement : SQLiteSafeHandle
+	public sealed class SQLiteStatement : SQLiteSafeHandle
 	{
 		internal readonly object _lockObject = new object();
 
@@ -43,11 +44,11 @@ namespace Tasler.SQLite
 		public int GetParameterNameIndex(string parameterName)
 		{
 			if (parameterName == null)
-				throw new ArgumentNullException("parameterName");
+				throw new ArgumentNullException(nameof(parameterName));
 
 			var parameterIndex = SQLiteApi.sqlite3_bind_parameter_index(this, parameterName);
 			if (parameterIndex == 0)
-				throw new ArgumentException("The SQLiteStatement has no matching parameter name: " + parameterName, "parameterName");
+				throw new ArgumentException($"The SQLiteStatement has no matching parameter name: {parameterName}", nameof(parameterName));
 
 			return parameterIndex;
 		}
@@ -60,10 +61,17 @@ namespace Tasler.SQLite
 		public void BindTextParameter(int parameterIndex, string value)
 		{
 			value = value ?? string.Empty;
-			var pointer = Marshal.StringToCoTaskMemUni(value);
 			var byteCount = value.Length * sizeof(char);
-			var result = SQLiteApi.sqlite3_bind_text16(this, parameterIndex, pointer, byteCount, new IntPtr(-1));
-			Marshal.FreeCoTaskMem(pointer);
+
+			var result = default(SQLiteResultCode);
+			unsafe
+			{
+				fixed (char* pointer = value)
+				{
+					result = SQLiteApi.sqlite3_bind_text16(this, parameterIndex, pointer, byteCount, Interop.SQLiteApi.SQLITE_TRANSIENT);
+				}
+			}
+
 			ThrowOnError(result);
 		}
 
@@ -76,10 +84,12 @@ namespace Tasler.SQLite
 
 		public IEnumerable<SQLiteRow> GetRows()
 		{
-			SQLiteResultCode result = SQLiteResultCode.Ok; //SQLiteApi.sqlite3_reset(this);
 			lock (_lockObject)
 				_columnDefinitions = null;
 
+			this.Reset();
+
+			var result = default(SQLiteResultCode);
 			while (result != SQLiteResultCode.Done)
 			{
 				lock (_lockObject)
@@ -92,8 +102,7 @@ namespace Tasler.SQLite
 				}
 				else if (result == SQLiteResultCode.Busy)
 				{
-					// TODO: Some retry logic
-					// Thread.Sleep(10)
+					Thread.Sleep(0);
 				}
 				else if (result != SQLiteResultCode.Done)
 				{

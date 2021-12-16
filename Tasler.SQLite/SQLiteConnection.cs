@@ -4,7 +4,7 @@ using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
-	public class SQLiteConnection : SQLiteSafeHandle
+	public sealed class SQLiteConnection : SQLiteSafeHandle
 	{
 		public static SQLiteConnection Open(
 			string filename,
@@ -13,7 +13,7 @@ namespace Tasler.SQLite
 			SQLiteConnection connection;
 			var result = SQLiteApi.sqlite3_open_v2(filename, out connection, flags, null);
 			if (!connection.IsInvalid)
-				SQLiteApi.sqlite3_extended_result_codes(connection, true);
+				SQLiteApi.sqlite3_extended_result_codes(connection, false);
 			connection.ThrowOnError(result);
 			return connection;
 		}
@@ -32,36 +32,29 @@ namespace Tasler.SQLite
 			string tableName,
 			string columnName)
 		{
-			var dataTypeNamePtr = IntPtr.Zero;
-			var collationSequenceNamePtr = IntPtr.Zero;
-			var isNotNullable = false;
-			var isPrimaryKey = false;
-			var isAutoIncrement = false;
-
 			ThrowOnError(
-					SQLiteApi.sqlite3_table_column_metadata(
-							this, dbName, tableName, columnName,
-							out dataTypeNamePtr, out collationSequenceNamePtr,
-							out isNotNullable, out isPrimaryKey, out isAutoIncrement)
-					);
+				SQLiteApi.sqlite3_table_column_metadata(
+					this, dbName, tableName, columnName,
+					out var dataTypeName, out var collationSequenceName,
+					out var isNotNullable, out var isPrimaryKey, out var isAutoIncrement)
+				);
 
 			return new SQLiteColumnDefinition
 			{
 				Name = columnName,
 				TableName = tableName,
 				DatabaseName = dbName,
-				DataTypeName = Marshal.PtrToStringAnsi(dataTypeNamePtr),
-				CollationSequenceName = Marshal.PtrToStringAnsi(collationSequenceNamePtr),
+				DataTypeName = Marshal.PtrToStringAnsi(dataTypeName),
+				CollationSequenceName = Marshal.PtrToStringAnsi(collationSequenceName),
 				IsNotNullable = isNotNullable,
 				IsPrimaryKey = isPrimaryKey,
 				IsAutoIncrement = isAutoIncrement
 			};
 		}
 
-		public string GetErrorMessage(SQLiteResultCode resultCode)
-		{
-			return Marshal.PtrToStringAnsi(SQLiteApi.sqlite3_errstr(resultCode));
-		}
+		public static string GetErrorMessage(SQLiteResultCode resultCode) => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_errstr(resultCode));
+
+		public static string GetErrorMessage(SQLiteExtendedResultCode resultCode) => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_errstr(resultCode));
 
 		public SQLiteResultCode LastErrorCode => SQLiteApi.sqlite3_errcode(this);
 
@@ -69,7 +62,7 @@ namespace Tasler.SQLite
 
 		public string LastErrorMessage => Marshal.PtrToStringUni(SQLiteApi.sqlite3_errmsg16(this));
 
-		public string LastExtendedErrorMessage => Marshal.PtrToStringAnsi(SQLiteApi.sqlite3_extended_errstr(this.LastExtendedErrorCode));
+		public string LastExtendedErrorMessage => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_errstr(this.LastExtendedErrorCode));
 
 		protected override bool ReleaseHandle()
 		{
