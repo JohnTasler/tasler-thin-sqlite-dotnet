@@ -13,15 +13,16 @@ namespace Tasler.SQLite.Test
 			{
 				Assert.IsNotNull(connection);
 
-				using (var statement = connection.PrepareStatementText("DropNamesTable.sqlite"))
-					statement.Execute();
-
-				using (var statement = connection.PrepareStatementText("CreateNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("DropNamesTable.sql"))
 				{
 					statement.Execute();
+					Assert.AreEqual(statement.ColumnDefinitions.Count, 0);
+				}
 
-					var columnDefinitions = statement.ColumnDefinitions;
-					Assert.AreEqual(columnDefinitions.Count, 0);
+				using (var statement = connection.PrepareStatementText("CreateNamesTable.sql"))
+				{
+					statement.Execute();
+					Assert.AreEqual(statement.ColumnDefinitions.Count, 0);
 				}
 
 				var metadata = connection.GetTableColumnMetadata(null, "Names", "id");
@@ -59,19 +60,19 @@ namespace Tasler.SQLite.Test
 		{
 			using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
 			{
-				using (var statement = connection.PrepareStatementText("DropNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("DropNamesTable.sql"))
 					statement.Execute();
 
-				using (var statement = connection.PrepareStatementText("CreateNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("CreateNamesTable.sql"))
 					statement.Execute();
 
-				using (var statement = connection.PrepareStatementText("InsertStaticValuesIntoTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("InsertStaticValuesIntoTable.sql"))
 					statement.Execute();
 			}
 
 			using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
 			{
-				using (var statement = connection.PrepareStatementText("SelectFromNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("SelectFromNamesTable.sql"))
 				{
 					var firstRow = statement.GetRows().FirstOrDefault();
 					Assert.IsNotNull(firstRow, "No rows were returned from the SELECT statement. Expected 1.");
@@ -98,15 +99,15 @@ namespace Tasler.SQLite.Test
 		{
 			using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
 			{
-				using (var statement = connection.PrepareStatementText("DropNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("DropNamesTable.sql"))
 					statement.Execute();
 
-				using (var statement = connection.PrepareStatementText("CreateNamesTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("CreateNamesTable.sql"))
 					statement.Execute();
 
-				using (var statement = connection.PrepareStatementText("InsertBoundValuesIntoTable.sqlite"))
+				using (var statement = connection.PrepareStatementText("InsertBoundValuesIntoTable.sql"))
 				{
-					var insertRecords = new[]
+					var insertRecords = new []
 					{
 						new { FirstName = "Keith"  , LastName = "Richards" },
 						new { FirstName = "Michael", LastName = "Jackson"  },
@@ -126,7 +127,7 @@ namespace Tasler.SQLite.Test
 
 			//using (var connection = SQLiteConnection.Open(Common.TestDatabaseFullPathName))
 			//{
-			//	using (var statement = connection.PrepareStatementText("SelectFromNamesTable.sqlite"))
+			//	using (var statement = connection.PrepareStatementText("SelectFromNamesTable.sql"))
 			//	{
 			//		var firstRow = statement.GetRows().FirstOrDefault();
 			//		Assert.IsNotNull(firstRow, "No rows were returned from the SELECT statement. Expected 1.");
