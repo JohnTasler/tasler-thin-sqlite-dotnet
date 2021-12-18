@@ -9,35 +9,25 @@ namespace Tasler.SQLite
 {
 	public sealed class SQLiteStatement : SQLiteSafeHandle
 	{
-		internal readonly object _lockObject = new object();
+		public SQLiteConnection Connection { get; internal set; }
 
-		private SQLiteColumnDefinition[] _columnDefinitions;
 		public IList<SQLiteColumnDefinition> ColumnDefinitions
 		{
 			get
 			{
-				lock (_lockObject)
+				var columnCount = SQLiteApi.sqlite3_column_count(this);
+				var columnDefinitions = new SQLiteColumnDefinition[columnCount];
+				for (var columnIndex = 0; columnIndex < columnCount; ++columnIndex)
 				{
-					if (_columnDefinitions == null)
-					{
-						var columnCount = SQLiteApi.sqlite3_column_count(this);
-						var columnDefinitions = new SQLiteColumnDefinition[columnCount];
-						for (var columnIndex = 0; columnIndex < columnCount; ++columnIndex)
-						{
-							var databaseName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_database_name16(this, columnIndex));
-							var tableName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_table_name16(this, columnIndex));
-							var originName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_origin_name16(this, columnIndex));
+					var databaseName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_database_name16(this, columnIndex));
+					var tableName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_table_name16(this, columnIndex));
+					var originName = Marshal.PtrToStringUni(SQLiteApi.sqlite3_column_origin_name16(this, columnIndex));
 
-							if (databaseName != null && tableName != null && originName != null)
-								columnDefinitions[columnIndex] =
-									this.Connection.GetTableColumnMetadata(databaseName, tableName, originName);
-						}
-
-						_columnDefinitions = columnDefinitions;
-					}
-
-					return _columnDefinitions;
+					columnDefinitions[columnIndex] = this.Connection.GetTableColumnMetadata(
+						databaseName, tableName, originName);
 				}
+
+				return columnDefinitions;
 			}
 		}
 
@@ -60,10 +50,10 @@ namespace Tasler.SQLite
 
 		public void BindTextParameter(int parameterIndex, string value)
 		{
-			value = value ?? string.Empty;
+			value ??= string.Empty;
 			var byteCount = value.Length * sizeof(char);
 
-			var result = default(SQLiteResultCode);
+			var result = default(SQLiteExtendedResultCode);
 			unsafe
 			{
 				fixed (char* pointer = value)
@@ -75,59 +65,152 @@ namespace Tasler.SQLite
 			ThrowOnError(result);
 		}
 
-		public SQLiteConnection Connection { get; internal set; }
-
-		public void Execute()
+		public SQLiteStatementIsExplain IsExplain
 		{
-			GetRows().FirstOrDefault();
-		}
-
-		public IEnumerable<SQLiteRow> GetRows()
-		{
-			lock (_lockObject)
-				_columnDefinitions = null;
-
-			this.Reset();
-
-			var result = default(SQLiteResultCode);
-			while (result != SQLiteResultCode.Done)
+			get
 			{
-				lock (_lockObject)
-					result = SQLiteApi.sqlite3_step(this);
-
-				if (result == SQLiteResultCode.Row)
+				try
 				{
-					var row = new SQLiteRow(this);
-					yield return row;
+					return SQLiteApi.sqlite3_stmt_isexplain(this);
 				}
-				else if (result == SQLiteResultCode.Busy)
+				catch
 				{
-					Thread.Sleep(0);
-				}
-				else if (result != SQLiteResultCode.Done)
-				{
-					ThrowOnError(result);
+					return SQLiteStatementIsExplain.False;
 				}
 			}
 		}
 
-		public void Reset()
+		/// <summary>
+		/// Determines if the prepared statement makes no direct changes to the content of the database file.
+		/// </summary>
+		/// <remarks>
+		/// Note that application-defined SQL functions or virtual tables might change the database indirectly as a
+		/// side effect. For example, if an application defines a function "eval()" that calls sqlite3_exec(), then
+		/// the following SQL statement would change the database file through side-effects:
+		/// <code>
+		/// SELECT eval('DELETE FROM t1') FROM t2;
+		/// </code>
+		/// <para>But because the SELECT statement does not change the database file directly, <see cref="IsReadOnly"/>
+		/// would still return <c>true</c>.</para>
+		/// <para> Transaction control statements such as BEGIN, COMMIT, ROLLBACK, SAVEPOINT, and RELEASE cause
+		/// <see cref="IsReadOnly"/> to return <c>true</c>, since the statements themselves do not actually modify
+		/// the database but rather they control the timing of when other statements modify the database. The ATTACH
+		/// and DETACH statements also cause <see cref="IsReadOnly"/> to return <c>true</c> since, while those
+		/// statements change the configuration of a database connection, they do not make changes to the content
+		/// of the database files on disk. The <see cref="IsReadOnly"/> interface returns <c>true</c> for BEGIN
+		/// since BEGIN merely sets internal flags, but the BEGIN IMMEDIATE and BEGIN&nbsp;EXCLUSIVE commands do touch the
+		/// database and so <see cref="IsReadOnly"/> returns <c>false</c> for those commands.</para>
+		/// <para>This routine returns <c>false</c> if there is any possibility that the statement might change the
+		/// database file. A <c>false</c> return does not guarantee that the statement will change the database file.
+		/// For example, an UPDATE statement might have a WHERE clause that makes it a no-op, but the
+		/// <see cref="IsReadOnly"/> result would still be <c>false</c>. Similarly, a
+		/// CREATE&nbsp;TABLE&nbsp;IF&nbsp;NOT&nbsp;EXISTS statement is a read-only no-op if the table already exists,
+		/// but <see cref="IsReadOnly"/> still returns <c>false</c> for such a statement.</para>
+		/// </remarks>
+		public bool IsReadOnly => SQLiteApi.sqlite3_stmt_readonly(this);
+
+		/// <summary>
+		/// Gets and, optionally, resets the specified prepared statement counter value.
+		/// </summary>
+		/// <param name="counter">The counter to be interrogated</param>
+		/// <param name="resetCounter">When <c>true</c>, the requested <paramref name="counter"/> is reset to zero.</param>
+		/// <returns>The current value of the requested <paramref name="counter"/>.</returns>
+		/// <remarks>
+		/// Each prepared statement maintains various <see cref="SQLiteStatementStatus"/> counters that measure the
+		/// number of times it has performed specific operations. These counters can be used to monitor the
+		/// performance characteristics of the prepared statements. For example, if the number of table steps
+		/// greatly exceeds the number of table searches or result rows, that would tend to indicate that the
+		/// prepared statement is using a full table scan rather than an index.
+		/// </remarks>
+		public int GetStatus(SQLiteStatementStatus counter, bool resetCounter) =>
+			SQLiteApi.sqlite3_stmt_status(this, counter, resetCounter);
+
+		public string Sql => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_sql(this));
+
+		public string ExpandedSql
 		{
-			var result = SQLiteApi.sqlite3_reset(this);
-			ThrowOnError(result);
+			get
+			{
+				try
+				{
+					var pointer = SQLiteApi.sqlite3_expanded_sql(this);
+					var result = Marshal.PtrToStringUTF8(pointer);
+					SQLiteApi.sqlite3_free(pointer);
+					return result;
+				}
+				catch
+				{
+					return null;
+				}
+			}
 		}
+
+		public string NormalizedSql
+		{
+			get
+			{
+				try
+				{
+					return Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_normalized_sql(this));
+				}
+				catch
+				{
+					return null;
+				}
+			}
+		}
+
+		public void Execute() => _ = GetRows().FirstOrDefault();
+
+		public IEnumerable<SQLiteRow> GetRows()
+		{
+			this.Reset();
+
+			for (var result = SQLiteApi.sqlite3_step(this); result != SQLiteExtendedResultCode.Done; result = SQLiteApi.sqlite3_step(this))
+			{
+				switch (result)
+				{
+					case SQLiteExtendedResultCode.Row:
+						yield return new SQLiteRow(this);
+						break;
+
+					case SQLiteExtendedResultCode.Busy:
+						Thread.Sleep(0);
+						break;
+
+					case SQLiteExtendedResultCode.Done:
+						break;
+
+					default:
+						ThrowOnError(result);
+						break;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Reset the statement object back to its initial state, ready to be re-executed. Any SQL statement
+		/// variables that had values bound to them using the sqlite3_bind_*() API retain their values.
+		/// Use <see cref="ClearBindings"/> to reset the bindings.
+		/// </summary>
+		public void Reset() => ThrowOnError(SQLiteApi.sqlite3_reset(this));
+
+		/// <summary>
+		/// Resets all host parameters to <c>null</c>.
+		/// </summary>
+		public void ClearBindings() => throw null;
 
 		protected override bool ReleaseHandle()
 		{
 			var errorCode = SQLiteApi.sqlite3_finalize(this.handle);
 			this.handle = IntPtr.Zero;
-			return errorCode == SQLiteResultCode.Ok;
+			return errorCode == SQLiteExtendedResultCode.Ok;
 		}
 
-		private void ThrowOnError(SQLiteResultCode errorCode)
+		private static void ThrowOnError(SQLiteExtendedResultCode errorCode)
 		{
-			if (errorCode != SQLiteResultCode.Ok)
-				throw new SQLiteStatementException(this);
+			if (errorCode != SQLiteExtendedResultCode.Ok)
+				throw new SQLiteStatementException(errorCode);
 		}
 	}
 }

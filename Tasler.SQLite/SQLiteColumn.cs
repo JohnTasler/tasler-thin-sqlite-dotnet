@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
@@ -19,39 +19,28 @@ namespace Tasler.SQLite
 
 		public int Index { get; private set; }
 
+		public SQLiteDataType DataType => SQLiteApi.sqlite3_column_type(this.Row.Statement, this.Index);
+
 		public object GetValue()
 		{
-			var dataTypeName = this.Definition.DataTypeName.ToUpper();
-
-			if (dataTypeName.Contains("INT"))
+			switch (this.DataType)
 			{
-				var value = this.GetInt64Value();
-				return value <= int.MaxValue ? (int)value : value;
-			}
+				case SQLiteDataType.Integer:
+					return this.GetInt64Value();
 
-			if (dataTypeName.Contains("CHAR") || dataTypeName.Contains("CLOB") || dataTypeName.Contains("TEXT"))
-			{
-				return this.GetStringValue();
-			}
+				case SQLiteDataType.Float:
+					return this.GetDoubleValue();
 
-			if (dataTypeName.Contains("BLOB") || dataTypeName == string.Empty)
-			{
-				return this.GetBlobSpanValue();
-			}
+				case SQLiteDataType.Text:
+					return this.GetStringValue();
 
-			if (dataTypeName.Contains("REAL") || dataTypeName.Contains("FLOA") || dataTypeName.Contains("DOUB"))
-			{
-				return this.GetDoubleValue();
-			}
+				case SQLiteDataType.Blob:
+					return this.GetBlobSpanValue();
 
-			var doubleValue = this.GetDoubleValue();
-			if (Math.Floor(doubleValue) != doubleValue)
-			{
-				return doubleValue;
+				case SQLiteDataType.Null:
+				default:
+					return null;
 			}
-
-			var longValue = this.GetInt64Value();
-			return longValue <= int.MaxValue ? (int)longValue : longValue;
 		}
 
 		public SQLiteBlobSpan GetBlobSpanValue()
@@ -90,6 +79,12 @@ namespace Tasler.SQLite
 			return value != 0;
 		}
 
+		public override string ToString()
+		{
+			var builder = new StringBuilder();
+			return $"{GetValue().ToString()}, {this.DataType}, {this.Definition}";
+		}
+
 		//public DateTime GetDateTimeValue()
 		//{
 		//	var value = GetDoubleValue();
@@ -123,7 +118,7 @@ namespace Tasler.SQLite
 
 		//	// Compute and add the fractional time
 		//	var fraction = julianDate - Math.Floor(julianDate);
-		//	var ticks = (long)Math.Floor(fraction * 864000000000d);
+		//	var ticks = (long)Math.Floor(fraction * 864_000_000_000d);
 		//	var timeSpan = TimeSpan.FromTicks(ticks);
 		//	var dateTime = date + timeSpan;
 

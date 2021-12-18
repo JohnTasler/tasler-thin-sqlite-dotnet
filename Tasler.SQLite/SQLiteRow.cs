@@ -17,21 +17,18 @@ namespace Tasler.SQLite
 		{
 			get
 			{
-				lock (this.Statement._lockObject)
+				if (_columns == null)
 				{
-					if (_columns == null)
-					{
-						var columnDefinitions = this.Statement.ColumnDefinitions;
-						var columns = new SQLiteColumn[columnDefinitions.Count];
+					var columnDefinitions = this.Statement.ColumnDefinitions;
+					var columns = new SQLiteColumn[columnDefinitions.Count];
 
-						for (var columnIndex = 0; columnIndex < columnDefinitions.Count; ++columnIndex)
-							columns[columnIndex] = new SQLiteColumn(this, columnDefinitions[columnIndex], columnIndex);
+					for (var columnIndex = 0; columnIndex < columnDefinitions.Count; ++columnIndex)
+						columns[columnIndex] = new SQLiteColumn(this, columnDefinitions[columnIndex], columnIndex);
 
-						_columns = columns;
-					}
-
-					return _columns;
+					_columns = columns;
 				}
+
+				return _columns;
 			}
 		}
 	}

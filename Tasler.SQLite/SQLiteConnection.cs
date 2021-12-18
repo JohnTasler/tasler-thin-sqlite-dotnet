@@ -11,10 +11,7 @@ namespace Tasler.SQLite
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite)
 		{
 			SQLiteConnection connection;
-			var result = SQLiteApi.sqlite3_open_v2(filename, out connection, flags, null);
-			if (!connection.IsInvalid)
-				SQLiteApi.sqlite3_extended_result_codes(connection, false);
-			connection.ThrowOnError(result);
+			ThrowOnError(SQLiteApi.sqlite3_open_v2(filename, out connection, flags | SQLiteOpenFlags.ExtendedResults, null));
 			return connection;
 		}
 
@@ -22,7 +19,7 @@ namespace Tasler.SQLite
 		{
 			SQLiteStatement statement;
 			ThrowOnError(SQLiteApi.sqlite3_prepare16_v2(
-					this, sqlQuery, (sqlQuery.Length + 1) * sizeof(char), out statement, IntPtr.Zero));
+				this, sqlQuery, (sqlQuery.Length + 1) * sizeof(char), out statement, IntPtr.Zero));
 			statement.Connection = this;
 			return statement;
 		}
@@ -52,6 +49,31 @@ namespace Tasler.SQLite
 			};
 		}
 
+		public string GetDatabaseFileName(string dbName) => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_db_filename(this, dbName));
+
+		public void FlushCache()
+		{
+			ThrowOnError(SQLiteApi.sqlite3_db_cacheflush(this));
+		}
+
+		public bool? GetIsDatabaseReadOnly(string dbName)
+		{
+			var result = SQLiteApi.sqlite3_db_readonly(this, dbName);
+			return result >= 0 ? result != 0 : null;
+		}
+
+		public int GetDatabaseStatus(SQLiteDatabaseStatus operation, out int highWater, bool resetHighWater)
+		{
+			ThrowOnError(SQLiteApi.sqlite3_db_status(this, operation, out var current, out highWater, resetHighWater));
+			return current;
+		}
+
+		public bool IsAutoCommit => SQLiteApi.sqlite3_get_autocommit(this);
+
+		public void Interrupt() => SQLiteApi.sqlite3_interrupt(this);
+
+		public long LastInsertRowId => SQLiteApi.sqlite3_last_insert_rowid(this);
+
 		public static string GetErrorMessage(SQLiteResultCode resultCode) => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_errstr(resultCode));
 
 		public static string GetErrorMessage(SQLiteExtendedResultCode resultCode) => Marshal.PtrToStringUTF8(SQLiteApi.sqlite3_errstr(resultCode));
@@ -68,13 +90,15 @@ namespace Tasler.SQLite
 		{
 			var errorCode = SQLiteApi.sqlite3_close_v2(this.handle);
 			this.handle = IntPtr.Zero;
-			return errorCode == SQLiteResultCode.Ok;
+			return errorCode == SQLiteExtendedResultCode.Ok;
 		}
 
-		private void ThrowOnError(SQLiteResultCode errorCode)
+		private static void ThrowOnError(SQLiteExtendedResultCode extendedErrorCode)
 		{
-			if (errorCode != SQLiteResultCode.Ok)
-				throw new SQLiteConnectionException(this);
+			if (extendedErrorCode != SQLiteExtendedResultCode.Ok)
+			{
+				throw new SQLiteConnectionException(extendedErrorCode);
+			}
 		}
 	}
 }

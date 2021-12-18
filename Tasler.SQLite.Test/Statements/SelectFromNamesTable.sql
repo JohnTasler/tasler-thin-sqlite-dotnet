@@ -1,1 +1,1 @@
-﻿SELECT firstName, lastName, modified FROM Names;
+﻿SELECT rowid, firstName, lastName, modified FROM Names;

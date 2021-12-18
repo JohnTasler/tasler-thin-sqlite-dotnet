@@ -1,10 +1,15 @@
-﻿using System;
-
+﻿
 namespace Tasler.SQLite
 {
-	[Flags]
 	public enum SQLiteExtendedResultCode
 	{
+		Ok                     = (SQLiteResultCode.Ok                  ),
+		Row                    = (SQLiteResultCode.Row                 ),
+		Done                   = (SQLiteResultCode.Done                ),
+		Busy                   = (SQLiteResultCode.Busy                ),
+		ErrorMissingCollseq    = (SQLiteResultCode.Error      |  (1<<8)),
+		ErrorRetry             = (SQLiteResultCode.Error      |  (2<<8)),
+		ErrorSnapshot          = (SQLiteResultCode.Error      |  (3<<8)),
 		IoErrRead              = (SQLiteResultCode.IoErr      |  (1<<8)),
 		IoErrShortRead         = (SQLiteResultCode.IoErr      |  (2<<8)),
 		IoErrWrite             = (SQLiteResultCode.IoErr      |  (3<<8)),
@@ -28,21 +33,36 @@ namespace Tasler.SQLite
 		IoErrShmMap            = (SQLiteResultCode.IoErr      | (21<<8)),
 		IoErrSeek              = (SQLiteResultCode.IoErr      | (22<<8)),
 		IoErrDeleteNoEnt       = (SQLiteResultCode.IoErr      | (23<<8)),
-		IoErrMMap              = (SQLiteResultCode.IoErr      | (24<<8)),
+		IoErrMemoryMap         = (SQLiteResultCode.IoErr      | (24<<8)),
 		IoErrGetTempPath       = (SQLiteResultCode.IoErr      | (25<<8)),
 		IoErrConvPath          = (SQLiteResultCode.IoErr      | (26<<8)),
+		IoErrVnode             = (SQLiteResultCode.IoErr      | (27<<8)),
+		IoErrAuth              = (SQLiteResultCode.IoErr      | (28<<8)),
+		IoErrBeginAtomic       = (SQLiteResultCode.IoErr      | (29<<8)),
+		IoErrCommitAtomic      = (SQLiteResultCode.IoErr      | (30<<8)),
+		IoErrRollbackAtomic    = (SQLiteResultCode.IoErr      | (31<<8)),
+		IoErrData              = (SQLiteResultCode.IoErr      | (32<<8)),
+		IoErrCorruptfs         = (SQLiteResultCode.IoErr      | (33<<8)),
 		LockedSharedCache      = (SQLiteResultCode.Locked     |  (1<<8)),
+		LockedVtab             = (SQLiteResultCode.Locked     |  (2<<8)),
 		BusyRecovery           = (SQLiteResultCode.Busy       |  (1<<8)),
 		BusySnapshot           = (SQLiteResultCode.Busy       |  (2<<8)),
+		BusyTimeout            = (SQLiteResultCode.Busy       |  (3<<8)),
 		CantOpenNoTempDir      = (SQLiteResultCode.CantOpen   |  (1<<8)),
 		CantOpenIsDir          = (SQLiteResultCode.CantOpen   |  (2<<8)),
 		CantOpenFullPath       = (SQLiteResultCode.CantOpen   |  (3<<8)),
 		CantOpenConvpath       = (SQLiteResultCode.CantOpen   |  (4<<8)),
+		CantOpenDirtyWal       = (SQLiteResultCode.CantOpen   |  (5<<8)),  // Not Used
+		CantOpenSymLink        = (SQLiteResultCode.CantOpen   |  (6<<8)),
 		CorruptVTab            = (SQLiteResultCode.Corrupt    |  (1<<8)),
+		CorruptSequence        = (SQLiteResultCode.Corrupt    |  (2<<8)),
+		CorruptIndex           = (SQLiteResultCode.Corrupt    |  (3<<8)),
 		ReadOnlyRecovery       = (SQLiteResultCode.ReadOnly   |  (1<<8)),
 		ReadOnlyCantLock       = (SQLiteResultCode.ReadOnly   |  (2<<8)),
 		ReadOnlyRollback       = (SQLiteResultCode.ReadOnly   |  (3<<8)),
 		ReadOnlyDbMoved        = (SQLiteResultCode.ReadOnly   |  (4<<8)),
+		ReadOnlyCantInit       = (SQLiteResultCode.ReadOnly   |  (5<<8)),
+		ReadOnlyDirectory      = (SQLiteResultCode.ReadOnly   |  (6<<8)),
 		AbortRollback          = (SQLiteResultCode.Abort      |  (2<<8)),
 		ConstraintCheck        = (SQLiteResultCode.Constraint |  (1<<8)),
 		ConstraintCommitHook   = (SQLiteResultCode.Constraint |  (2<<8)),
@@ -54,8 +74,13 @@ namespace Tasler.SQLite
 		ConstraintUnique       = (SQLiteResultCode.Constraint |  (8<<8)),
 		ConstraintVtab         = (SQLiteResultCode.Constraint |  (9<<8)),
 		ConstraintRowId        = (SQLiteResultCode.Constraint | (10<<8)),
+		ConstraintPinned       = (SQLiteResultCode.Constraint | (11<<8)),
+		ConstraintDataType     = (SQLiteResultCode.Constraint | (12<<8)),
 		NoticeRecoverWal       = (SQLiteResultCode.Notice     |  (1<<8)),
 		NoticeRecoverRollback  = (SQLiteResultCode.Notice     |  (2<<8)),
-		WarningAutoIndex       = (SQLiteResultCode.Warning    |  (1<<8))
+		WarningAutoIndex       = (SQLiteResultCode.Warning    |  (1<<8)),
+		AuthUser               = (SQLiteResultCode.Auth       |  (1<<8)),
+		OkLoadPermanently      = (SQLiteResultCode.Ok         |  (1<<8)),
+		OkSymLink              = (SQLiteResultCode.Ok         |  (2<<8)),
 	}
 }

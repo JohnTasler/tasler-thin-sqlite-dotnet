@@ -1,21 +1,18 @@
 ﻿using System;
+using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
 	public abstract class SQLiteException : Exception
 	{
-		internal SQLiteException(string extendedErrorMessage, string errorMessage, SQLiteResultCode errorCode, SQLiteExtendedResultCode extendedErrorCode)
-			: base(extendedErrorMessage)
+		internal SQLiteException(SQLiteExtendedResultCode extendedErrorCode)
+			: base(SQLiteConnection.GetErrorMessage(extendedErrorCode))
 		{
-			this.ErrorMessage = extendedErrorMessage;
-			this.ErrorCode = errorCode;
 			this.ExtendedErrorCode = extendedErrorCode;
 		}
 
-		public SQLiteResultCode ErrorCode { get; private set; }
+		public SQLiteResultCode ErrorCode => SQLiteApi.GetPrimaryResult(this.ExtendedErrorCode);
 
 		public SQLiteExtendedResultCode ExtendedErrorCode { get; private set; }
-
-		public string ErrorMessage { get; private set; }
 	}
 }
