@@ -1,8 +1,9 @@
-﻿
-using System.Text;
+﻿using System.Diagnostics;
 
 namespace Tasler.SQLite
 {
+
+	[DebuggerDisplay("[{DatabaseName}].[{TableName}].[{Name}] {DataTypeName}")]
 	public readonly record struct SQLiteColumnDefinition
 	{
 		public string Name                  { get; internal init; }
@@ -13,20 +14,5 @@ namespace Tasler.SQLite
 		public bool IsNotNullable           { get; internal init; }
 		public bool IsPrimaryKey            { get; internal init; }
 		public bool IsAutoIncrement         { get; internal init; }
-
-		public override string ToString()
-		{
-			var builder = new StringBuilder();
-			if (DatabaseName != null)
-				builder.Append($"[{this.DatabaseName}].");
-			if (TableName != null)
-				builder.Append($"[{this.TableName}].");
-			if (Name != null)
-				builder.Append($"[{this.Name}].");
-			builder.Append($" AS {this.DataTypeName}");
-
-			return builder.ToString();
-		}
-
 	}
 }

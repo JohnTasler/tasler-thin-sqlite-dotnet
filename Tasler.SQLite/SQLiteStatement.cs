@@ -62,7 +62,7 @@ namespace Tasler.SQLite
 				}
 			}
 
-			ThrowOnError(result);
+			ThrowIfError(result);
 		}
 
 		public SQLiteStatementIsExplain IsExplain
@@ -182,7 +182,7 @@ namespace Tasler.SQLite
 						break;
 
 					default:
-						ThrowOnError(result);
+						ThrowIfError(result);
 						break;
 				}
 			}
@@ -193,12 +193,12 @@ namespace Tasler.SQLite
 		/// variables that had values bound to them using the sqlite3_bind_*() API retain their values.
 		/// Use <see cref="ClearBindings"/> to reset the bindings.
 		/// </summary>
-		public void Reset() => ThrowOnError(SQLiteApi.sqlite3_reset(this));
+		public void Reset() => ThrowIfError(SQLiteApi.sqlite3_reset(this));
 
 		/// <summary>
 		/// Resets all host parameters to <c>null</c>.
 		/// </summary>
-		public void ClearBindings() => throw null;
+		public void ClearBindings() => ThrowIfError(SQLiteApi.sqlite3_clear_bindings(this));
 
 		protected override bool ReleaseHandle()
 		{
@@ -207,7 +207,7 @@ namespace Tasler.SQLite
 			return errorCode == SQLiteExtendedResultCode.Ok;
 		}
 
-		private static void ThrowOnError(SQLiteExtendedResultCode errorCode)
+		private static void ThrowIfError(SQLiteExtendedResultCode errorCode)
 		{
 			if (errorCode != SQLiteExtendedResultCode.Ok)
 				throw new SQLiteStatementException(errorCode);

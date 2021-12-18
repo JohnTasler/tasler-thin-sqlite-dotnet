@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Tasler.SQLite.Interop;
 
 namespace Tasler.SQLite
 {
+	[DebuggerDisplay("FileName={GetDatabaseFileName(null)} IsReadOnly={GetIsDatabaseReadOnly(null)}")]
 	public sealed class SQLiteConnection : SQLiteSafeHandle
 	{
 		public static SQLiteConnection Open(
@@ -11,14 +13,14 @@ namespace Tasler.SQLite
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite)
 		{
 			SQLiteConnection connection;
-			ThrowOnError(SQLiteApi.sqlite3_open_v2(filename, out connection, flags | SQLiteOpenFlags.ExtendedResults, null));
+			ThrowIfError(SQLiteApi.sqlite3_open_v2(filename, out connection, flags | SQLiteOpenFlags.ExtendedResults, null));
 			return connection;
 		}
 
 		public SQLiteStatement PrepareStatement(string sqlQuery)
 		{
 			SQLiteStatement statement;
-			ThrowOnError(SQLiteApi.sqlite3_prepare16_v2(
+			ThrowIfError(SQLiteApi.sqlite3_prepare16_v2(
 				this, sqlQuery, (sqlQuery.Length + 1) * sizeof(char), out statement, IntPtr.Zero));
 			statement.Connection = this;
 			return statement;
@@ -29,7 +31,7 @@ namespace Tasler.SQLite
 			string tableName,
 			string columnName)
 		{
-			ThrowOnError(
+			ThrowIfError(
 				SQLiteApi.sqlite3_table_column_metadata(
 					this, dbName, tableName, columnName,
 					out var dataTypeName, out var collationSequenceName,
@@ -53,7 +55,7 @@ namespace Tasler.SQLite
 
 		public void FlushCache()
 		{
-			ThrowOnError(SQLiteApi.sqlite3_db_cacheflush(this));
+			ThrowIfError(SQLiteApi.sqlite3_db_cacheflush(this));
 		}
 
 		public bool? GetIsDatabaseReadOnly(string dbName)
@@ -64,7 +66,7 @@ namespace Tasler.SQLite
 
 		public int GetDatabaseStatus(SQLiteDatabaseStatus operation, out int highWater, bool resetHighWater)
 		{
-			ThrowOnError(SQLiteApi.sqlite3_db_status(this, operation, out var current, out highWater, resetHighWater));
+			ThrowIfError(SQLiteApi.sqlite3_db_status(this, operation, out var current, out highWater, resetHighWater));
 			return current;
 		}
 
@@ -93,7 +95,7 @@ namespace Tasler.SQLite
 			return errorCode == SQLiteExtendedResultCode.Ok;
 		}
 
-		private static void ThrowOnError(SQLiteExtendedResultCode extendedErrorCode)
+		private static void ThrowIfError(SQLiteExtendedResultCode extendedErrorCode)
 		{
 			if (extendedErrorCode != SQLiteExtendedResultCode.Ok)
 			{

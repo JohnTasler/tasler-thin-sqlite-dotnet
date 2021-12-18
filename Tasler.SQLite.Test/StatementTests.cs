@@ -35,6 +35,8 @@ namespace Tasler.SQLite.Test
 
 				metadata = connection.GetTableColumnMetadata("main", "Names", "firstName");
 				Assert.AreEqual("main", metadata.DatabaseName, true);
+				Assert.AreEqual("Names", metadata.TableName, true);
+				Assert.AreEqual("firstName", metadata.Name, true);
 				Assert.AreEqual("TEXT", metadata.DataTypeName, true);
 				Assert.AreEqual("BINARY", metadata.CollationSequenceName, true);
 				Assert.IsFalse(metadata.IsNotNullable);

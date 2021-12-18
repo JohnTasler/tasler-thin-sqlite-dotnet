@@ -8,10 +8,15 @@ VALUES
 (
 	'John'
 	,'Tasler'
-	,date('now')
+	,julianday('now')
 ),
 (
-	'Ronny'
-	,'Dio'
-	,datetime('now')
+	'Russell'
+	,'Wilson'
+	,julianday('now')
+),
+(
+	'Tom'
+	,'Brady'
+	,julianday('now')
 );
