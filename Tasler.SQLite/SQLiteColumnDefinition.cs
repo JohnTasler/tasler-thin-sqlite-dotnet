@@ -3,7 +3,7 @@
 namespace Tasler.SQLite
 {
 
-	[DebuggerDisplay("[{DatabaseName}].[{TableName}].[{Name}] {DataTypeName}")]
+	[DebuggerDisplay("[{DatabaseName, nq}].[{TableName, nq}].[{Name, nq}] {DataTypeName, nq}")]
 	public readonly record struct SQLiteColumnDefinition
 	{
 		public string Name                  { get; internal init; }

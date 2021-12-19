@@ -3,5 +3,5 @@
  id INTEGER PRIMARY KEY AUTOINCREMENT
 ,firstName TEXT
 ,lastName TEXT
-,modified DATETIME DEFAULT CURRENT_TIMESTAMP
+,modified DATETIME DEFAULT (julianday('now'))
 );

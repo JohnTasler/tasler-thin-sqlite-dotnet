@@ -2,21 +2,17 @@
 (
  firstName
 ,lastName
-,modified
 )
 VALUES
 (
 	'John'
 	,'Tasler'
-	,julianday('now')
 ),
 (
 	'Russell'
 	,'Wilson'
-	,julianday('now')
 ),
 (
 	'Tom'
 	,'Brady'
-	,julianday('now')
 );
